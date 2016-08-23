@@ -1,0 +1,168 @@
+var Espiritus = Espiritus || {};
+//this game will have only 1 state
+var GameState = {
+
+  //initiate game settings
+  init: function() {
+    //adapt to screen size, fit all the game
+    this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    this.scale.pageAlignHorizontally = true;
+    this.scale.pageAlignVertically = true;
+
+    this.game.physics.startSystem(Phaser.Physics.ARCADE);
+		this.game.physics.arcade.setBoundsToWorld(false, true, true, true); //leftbound, rightbound, upperbound, lowerbound
+		
+    this.cursors = this.game.input.keyboard.createCursorKeys();
+  },
+
+  //load the game assets before the game starts
+  preload: function() {
+    this.load.image('background', 'assets/images/BG.png');
+		this.load.image('cave', 'assets/images/cave.png');
+		this.load.image('key', 'assets/images/key.png');
+		this.load.image('book', 'assets/images/book.png'); 
+		this.load.image('controller', 'assets/images/controller.png'); 
+		this.load.image('thermos', 'assets/images/thermos.png'); 
+		this.load.image('ticket', 'assets/images/ticket.png'); 
+		
+    this.load.spritesheet('player', 'assets/images/tiny_people.png', 32, 32, 112, 1, 0);     
+  
+    this.load.text('level', 'assets/data/level.json');
+		
+	  this.game.load.tilemap('map', 'assets/data/level1.json', null, Phaser.Tilemap.TILED_JSON);
+		this.game.load.image('tiny_tileset', 'assets/tilemaps/tiny_tileset.png');
+  },
+  //executed after everything is loaded
+  create: function() {
+		
+    this.hell = game.add.tileSprite(0, 0, 1274, 768, 'cave');
+		this.background = game.add.tileSprite(1220, 0, 1664, 1024, 'background');
+
+    //parse the file
+    this.levelData = JSON.parse(this.game.cache.getText('level'));
+		
+		this.map = game.add.tilemap('map');
+    this.map.addTilesetImage('tiny_tileset');
+		
+		this.platformLayer = this.map.createLayer('platforms');
+    this.platformLayer.resizeWorld();
+
+		//  Set the tiles for collision.
+    //  Do this BEFORE generating the bodies below.
+    this.map.setCollisionBetween(1, 12, true, this.layer);
+		this.map.setCollision([234, 253, 243, 245, 208], true, this.platformLayer);
+
+    this.game.physics.arcade.gravity.y = 200;
+		 
+    //keys
+		var key;
+		this.keys = this.add.group();
+		this.keys.enableBody = true;
+		this.levelData.keyData.forEach(function(element){
+			key = this.keys.create(element.x, element.y, 'key');
+			//this.keys.scale.setTo(0.7);
+		}, this);
+		
+		this.keys.setAll('body.allowGravity', false);
+		
+		// Life Items
+		this.book = this.add.sprite(this.levelData.lifeItem1.x, this.levelData.lifeItem1.y, 'book');
+		this.book.scale.setTo(0.2);
+		this.controller = this.add.sprite(this.levelData.lifeItem2.x, this.levelData.lifeItem2.y, 'controller');
+		this.controller.scale.setTo(0.2);
+		this.thermos = this.add.sprite(this.levelData.lifeItem3.x, this.levelData.lifeItem3.y, 'thermos');
+		this.thermos.scale.setTo(0.2);
+
+    //create player
+    this.player = this.add.sprite(this.levelData.playerStart.x, this.levelData.playerStart.y, 'player', 62);
+    this.player.anchor.setTo(0.5);
+    this.player.animations.add('walking', [63, 60, 61, 62], 6, true);
+		this.game.physics.arcade.enable(this.player);
+    this.player.customParams = {};
+    this.game.camera.follow(this.player);
+		this.player.checkWorldBounds = true;
+		
+		//this.player.body.debug = true;
+		
+		 //  This will set Tile ID 26 (the coin) to call the hitCoin function when collided with
+    this.map.setTileIndexCallback(0, this.hitDanger, this.layer);
+
+    //  This will set the map location 2, 0 to call the function
+    //this.map.setTileLocationCallback(7, 32, 1, 1, this.hitDanger, this.layer);
+  },
+  update: function() {
+		this.jumpTimer = 0;
+		
+		 this.game.physics.arcade.collide(this.player, this.platformLayer);
+		 
+		 if (this.player.body.onFloor()) {
+		   this.player.customParams.mustJump = true;
+		 }
+
+    if (this.cursors.left.isDown) {
+      this.player.body.velocity.x = -this.levelData.runningSpeed;
+      this.player.scale.setTo(-1, 1);
+      this.player.play('walking');
+    }
+    else if (this.cursors.right.isDown) {
+      this.player.body.velocity.x = this.levelData.runningSpeed;
+      this.player.scale.setTo(1, 1);
+      this.player.play('walking');
+    }
+    else {
+      this.player.animations.stop();
+      this.player.frame = 62;
+			this.player.body.velocity.x = -this.levelData.pullSpeed;
+    }
+		
+    if (this.cursors.up.isDown && this.player.customParams.mustJump) {
+      this.player.body.velocity.y = -this.levelData.jumpingSpeed;
+      this.player.customParams.mustJump = false;
+    }
+		
+		// check if player is out of bounds; if so, kill it
+		this.player.events.onOutOfBounds.add(this.killPlayer, this);
+		
+		// check if player is touching key; if so, collect it
+		this.keys.forEach(function(key){
+			this.collectKeys(this.player, key);
+		}, this);
+		
+		this.collectLifeItem(this.player, this.book);
+		this.collectLifeItem(this.player, this.controller);
+		this.collectLifeItem(this.player, this.thermos);
+		
+		// check if player is touching danger tiles; if so, kill it
+  },
+  killPlayer: function(player, fire) {
+    console.log('auch!');
+    game.state.start('GameState');
+  },
+  win: function(player, goal) {
+    alert('you win!');
+    game.state.start('GameState');
+  },
+	collectKeys: function(player, key) {
+		if(Phaser.Rectangle.intersects(player, key)){
+			console.log("got a key");
+			key.destroy();
+		}
+	},
+	collectLifeItem: function(player, item){
+		if (Phaser.Rectangle.intersects(player, item)) {
+			console.log("got a " + item.key);
+			item.destroy();
+		}
+	},
+	hitDanger: function(player, tile){
+		console.log("ouch");
+	}
+  
+};
+
+//initiate the Phaser framework
+var game = new Phaser.Game(1024, 760, Phaser.AUTO);
+
+game.state.add('GameState', GameState);
+game.state.start('GameState');
+
