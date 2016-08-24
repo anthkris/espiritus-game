@@ -1,6 +1,6 @@
 var Espiritus = Espiritus || {};
 //this game will have only 1 state
-var GameState = {
+Espiritus.Game = {
 
   //initiate game settings
   init: function() {
@@ -19,7 +19,7 @@ var GameState = {
   preload: function() {
     this.load.image('background', 'assets/images/BG.png');
 		this.load.image('cave', 'assets/images/cave.png');
-		this.load.image('key', 'assets/images/key.png');
+		this.load.image('key', 'assets/images/keyRed.png');
 		this.load.image('book', 'assets/images/book.png'); 
 		this.load.image('controller', 'assets/images/controller.png'); 
 		this.load.image('thermos', 'assets/images/thermos.png'); 
@@ -49,8 +49,9 @@ var GameState = {
 
 		//  Set the tiles for collision.
     //  Do this BEFORE generating the bodies below.
-    this.map.setCollisionBetween(1, 12, true, this.layer);
-		this.map.setCollision([234, 253, 243, 245, 208], true, this.platformLayer);
+    this.map.setCollisionBetween(1, 1000, true, this.platformLayer);
+    //setTileIndexCallback works but makes the tile passable
+		this.map.setTileIndexCallback(27, this.hitDanger, this);
 
     this.game.physics.arcade.gravity.y = 200;
 		 
@@ -60,7 +61,7 @@ var GameState = {
 		this.keys.enableBody = true;
 		this.levelData.keyData.forEach(function(element){
 			key = this.keys.create(element.x, element.y, 'key');
-			//this.keys.scale.setTo(0.7);
+			key.scale.setTo(0.7);
 		}, this);
 		
 		this.keys.setAll('body.allowGravity', false);
@@ -68,10 +69,18 @@ var GameState = {
 		// Life Items
 		this.book = this.add.sprite(this.levelData.lifeItem1.x, this.levelData.lifeItem1.y, 'book');
 		this.book.scale.setTo(0.2);
+		this.game.physics.arcade.enable(this.book);
+		this.book.body.allowGravity = false;
+		
 		this.controller = this.add.sprite(this.levelData.lifeItem2.x, this.levelData.lifeItem2.y, 'controller');
-		this.controller.scale.setTo(0.2);
+		this.controller.scale.setTo(0.3);
+		this.game.physics.arcade.enable(this.controller);
+		this.controller.body.allowGravity = false;
+		
 		this.thermos = this.add.sprite(this.levelData.lifeItem3.x, this.levelData.lifeItem3.y, 'thermos');
 		this.thermos.scale.setTo(0.2);
+		this.game.physics.arcade.enable(this.thermos);
+		this.thermos.body.allowGravity = false;
 
     //create player
     this.player = this.add.sprite(this.levelData.playerStart.x, this.levelData.playerStart.y, 'player', 62);
@@ -83,17 +92,18 @@ var GameState = {
 		this.player.checkWorldBounds = true;
 		
 		//this.player.body.debug = true;
-		
-		 //  This will set Tile ID 26 (the coin) to call the hitCoin function when collided with
-    this.map.setTileIndexCallback(0, this.hitDanger, this.layer);
-
-    //  This will set the map location 2, 0 to call the function
-    //this.map.setTileLocationCallback(7, 32, 1, 1, this.hitDanger, this.layer);
   },
   update: function() {
-		this.jumpTimer = 0;
-		
-		 this.game.physics.arcade.collide(this.player, this.platformLayer);
+		 this.game.physics.arcade.collide(this.player, this.map);
+		 this.game.physics.arcade.collide(this.player, this.platformLayer, this.hitDanger, null, this);
+		 
+		 this.game.physics.arcade.collide(this.player, this.keys, this.collectKeys, null, this);
+		 
+		 this.game.physics.arcade.overlap(this.player, this.book, this.collectLifeItem);
+		 this.game.physics.arcade.collide(this.player, this.controller, this.collectLifeItem, null, this);
+		 this.game.physics.arcade.collide(this.player, this.book, this.collectLifeItem, null, this);
+		 
+		 
 		 
 		 if (this.player.body.onFloor()) {
 		   this.player.customParams.mustJump = true;
@@ -124,15 +134,14 @@ var GameState = {
 		this.player.events.onOutOfBounds.add(this.killPlayer, this);
 		
 		// check if player is touching key; if so, collect it
-		this.keys.forEach(function(key){
-			this.collectKeys(this.player, key);
-		}, this);
+		// this.keys.forEach(function(key){
+		// 	this.collectKeys(this.player, key);
+		// }, this);
 		
-		this.collectLifeItem(this.player, this.book);
-		this.collectLifeItem(this.player, this.controller);
-		this.collectLifeItem(this.player, this.thermos);
+		// this.collectLifeItem(this.player, this.book);
+		// this.collectLifeItem(this.player, this.controller);
+		// this.collectLifeItem(this.player, this.thermos);
 		
-		// check if player is touching danger tiles; if so, kill it
   },
   killPlayer: function(player, fire) {
     console.log('auch!');
@@ -143,19 +152,29 @@ var GameState = {
     game.state.start('GameState');
   },
 	collectKeys: function(player, key) {
-		if(Phaser.Rectangle.intersects(player, key)){
 			console.log("got a key");
 			key.destroy();
-		}
 	},
 	collectLifeItem: function(player, item){
-		if (Phaser.Rectangle.intersects(player, item)) {
 			console.log("got a " + item.key);
 			item.destroy();
-		}
 	},
-	hitDanger: function(player, tile){
-		console.log("ouch");
+	hitDanger: function(player, tile) {
+	  // check if player is touching danger tiles; if so, kill it
+	  //console.log(tile);
+	  if (tile.index === 208) {
+	    console.log("ouch");
+	  }
+	  if (tile.index === 243 && player.body.blocked.left) {
+	    console.log("ouch");
+	  }
+	  if (tile.index === 245 && player.body.blocked.right) {
+	    console.log("ouch");
+	  }
+	  if (tile.index === 234) {
+	    console.log("ouch");
+	  }
+		
 	}
   
 };
@@ -163,6 +182,6 @@ var GameState = {
 //initiate the Phaser framework
 var game = new Phaser.Game(1024, 760, Phaser.AUTO);
 
-game.state.add('GameState', GameState);
+game.state.add('GameState', Espiritus.Game);
 game.state.start('GameState');
 
