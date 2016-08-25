@@ -13,6 +13,7 @@ Espiritus.Game = {
 		this.game.physics.arcade.setBoundsToWorld(false, true, true, true); //leftbound, rightbound, upperbound, lowerbound
 		
     this.cursors = this.game.input.keyboard.createCursorKeys();
+    this.reg = {};
   },
 
   //load the game assets before the game starts
@@ -24,6 +25,7 @@ Espiritus.Game = {
 		this.load.image('controller', 'assets/images/controller.png'); 
 		this.load.image('thermos', 'assets/images/thermos.png'); 
 		this.load.image('ticket', 'assets/images/ticket.png'); 
+		this.load.image('modalBG', 'assets/images/modalBG.png'); 
 		
     this.load.spritesheet('player', 'assets/images/tiny_people.png', 32, 32, 112, 1, 0);     
   
@@ -31,12 +33,13 @@ Espiritus.Game = {
 		
 	  this.game.load.tilemap('map', 'assets/data/level1.json', null, Phaser.Tilemap.TILED_JSON);
 		this.game.load.image('tiny_tileset', 'assets/tilemaps/tiny_tileset.png');
+		
+		this.game.load.bitmapFont('nokiaBlack', 'assets/fonts/nokia16black.png', 'assets/fonts/nokia16black.xml');
   },
   //executed after everything is loaded
   create: function() {
-		
     this.hell = game.add.tileSprite(0, 0, 1274, 768, 'cave');
-		this.background = game.add.tileSprite(1220, 0, 1664, 1024, 'background');
+		this.background = game.add.tileSprite(1220, 0, 1248, 768, 'background');
 
     //parse the file
     this.levelData = JSON.parse(this.game.cache.getText('level'));
@@ -48,10 +51,10 @@ Espiritus.Game = {
     this.platformLayer.resizeWorld();
 
 		//  Set the tiles for collision.
-    //  Do this BEFORE generating the bodies below.
+    //  Do this BEFORE generating the bodies belosw.
     this.map.setCollisionBetween(1, 1000, true, this.platformLayer);
-    //setTileIndexCallback works but makes the tile passable
-		this.map.setTileIndexCallback(27, this.hitDanger, this);
+    // if don't return true, will allow tile to be impassable (which is fine in waters)
+		this.map.setTileIndexCallback([27, 28], this.drownInWater, this);
 
     this.game.physics.arcade.gravity.y = 200;
 		 
@@ -90,8 +93,13 @@ Espiritus.Game = {
     this.player.customParams = {};
     this.game.camera.follow(this.player);
 		this.player.checkWorldBounds = true;
+		//  This adjusts the collision body size to be a 20x23 box.
+    //  3, 6 is the X and Y offset of the newly sized box.
+    this.player.body.setSize(20, 23, 5, 6);
+    
+    // text dialogue setup
+    this.bookMessage = "This book reminds me of something... \nI remember reading it, long ago.";
 		
-		//this.player.body.debug = true;
   },
   update: function() {
 		 this.game.physics.arcade.collide(this.player, this.map);
@@ -99,9 +107,9 @@ Espiritus.Game = {
 		 
 		 this.game.physics.arcade.collide(this.player, this.keys, this.collectKeys, null, this);
 		 
-		 this.game.physics.arcade.overlap(this.player, this.book, this.collectLifeItem);
+		 this.game.physics.arcade.overlap(this.player, this.book, this.collectLifeItem, null, this);
 		 this.game.physics.arcade.collide(this.player, this.controller, this.collectLifeItem, null, this);
-		 this.game.physics.arcade.collide(this.player, this.book, this.collectLifeItem, null, this);
+		 this.game.physics.arcade.collide(this.player, this.thermos, this.collectLifeItem, null, this);
 		 
 		 
 		 
@@ -133,36 +141,61 @@ Espiritus.Game = {
 		// check if player is out of bounds; if so, kill it
 		this.player.events.onOutOfBounds.add(this.killPlayer, this);
 		
-		// check if player is touching key; if so, collect it
-		// this.keys.forEach(function(key){
-		// 	this.collectKeys(this.player, key);
-		// }, this);
-		
-		// this.collectLifeItem(this.player, this.book);
-		// this.collectLifeItem(this.player, this.controller);
-		// this.collectLifeItem(this.player, this.thermos);
-		
   },
+  render: function() {
+  	game.debug.body(this.player);
+  },
+	showBookModal: function() {
+		var that = this;
+		this.modalBG = this.game.add.sprite(this.game.camera.width/4, this.game.world.height - 122, 'modalBG');
+    this.modalBG.scale.setTo(0.7);
+    this.modalBG.fixedToCamera = true;
+    this.textObject = this.game.add.bitmapText(this.game.camera.width/4 + 100, this.game.world.height - 110, 'nokiaBlack', that.bookMessage, 20);
+    this.textObject.visible = false;
+    this.textObject.fixedToCamera = true;
+    
+    this.displayLetterByLetterText(that.textObject, that.bookMessage, function() {
+        // stuff you want to do at the end of the animation
+        // eg. this.input.onDown.addOnce(this.start, this);
+        that.game.time.events.add(Phaser.Timer.SECOND * 4, function(){
+        	that.fadeOut(that.modalBG);
+        	that.fadeOut(that.textObject);
+        }, this);
+        console.log("text end");
+    });
+	},
   killPlayer: function(player, fire) {
-    console.log('auch!');
-    game.state.start('GameState');
+  	 if (this.player.x > this.game.world.width) {
+  	 	this.win();
+  	 } else {
+  	 	console.log('auch!');
+    	this.game.state.start('GameState');
+  	 }
   },
   win: function(player, goal) {
     alert('you win!');
-    game.state.start('GameState');
+    this.game.state.start('GameState');
   },
 	collectKeys: function(player, key) {
 			console.log("got a key");
 			key.destroy();
 	},
-	collectLifeItem: function(player, item){
+	collectLifeItem: function(player, item) {
 			console.log("got a " + item.key);
+			if (item.key === "book") {
+				this.showBookModal();
+			}
 			item.destroy();
 	},
 	hitDanger: function(player, tile) {
 	  // check if player is touching danger tiles; if so, kill it
-	  //console.log(tile);
-	  if (tile.index === 208) {
+	  if (tile.index === 208 || tile.index === 234) {
+	    console.log("ouch");
+	  }
+	  if ((tile.index === 233 && player.body.blocked.right) || (tile.index === 233 && player.body.blocked.up)) {
+	    console.log("ouch");
+	  }
+	  if ((tile.index === 235 && player.body.blocked.left) || (tile.index === 235 && player.body.blocked.up)) {
 	    console.log("ouch");
 	  }
 	  if (tile.index === 243 && player.body.blocked.left) {
@@ -171,16 +204,31 @@ Espiritus.Game = {
 	  if (tile.index === 245 && player.body.blocked.right) {
 	    console.log("ouch");
 	  }
-	  if (tile.index === 234) {
-	    console.log("ouch");
-	  }
-		
+	},
+	drownInWater: function(player, tile) {
+		console.log("drowning...");
+	},
+	displayNextLetter: function() {
+		this.textObject.visible = true;
+    this.textObject.text = this.message.substr(0, this.counter);
+    this.counter += 1;
+	},
+	displayLetterByLetterText: function (textObject, message, onCompleteCallback) {
+    var timerEvent = this.game.time.events.repeat(80, message.length, this.displayNextLetter, 
+                                { textObject: textObject, message: message, counter: 1 });
+    timerEvent.timer.onComplete.addOnce(onCompleteCallback, this);
+	},
+	fadeOut: function(sprite) {
+		 var tween = game.add.tween(sprite).to( { alpha: 0 }, 2000, Phaser.Easing.Linear.None, true);
+		 tween.onComplete.add(function() {
+		 	console.log("destroy");
+		 	sprite.destroy();
+		 }); 
 	}
-  
 };
 
 //initiate the Phaser framework
-var game = new Phaser.Game(1024, 760, Phaser.AUTO);
+var game = new Phaser.Game(1024, 768, Phaser.AUTO);
 
 game.state.add('GameState', Espiritus.Game);
 game.state.start('GameState');
