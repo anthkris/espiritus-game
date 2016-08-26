@@ -127,8 +127,8 @@ Espiritus.Game = {
     },
     win: function(player) {
         console.log(player);
-        if (player.customParams.keyNum === 3) {
-            this.worldBound.destroy();
+        if (player.customParams.keyNum === 4) {
+            //this.worldBound.destroy();
             alert('you win!');
             this.game.state.start('GameState'); 
         } else {
@@ -139,6 +139,9 @@ Espiritus.Game = {
         player.customParams.keyNum++;
     	console.log("got " + player.customParams.keyNum + " key(s)");
     	key.destroy();
+    	if (player.customParams.keyNum === 4) {
+            this.worldBound.destroy();
+    	}
     },
     collectLifeItem: function(player, item) {
     	console.log("got a " + item.key);
