@@ -7,9 +7,9 @@
     {"x": 448, "y": 256},
     {"x": 1504, "y": 64},
     {"x": 1216, "y": 608},
-		{"x": 2176, "y": 672}
+	{"x": 2176, "y": 672}
   ],
-	"lifeItem1": {"x": 160, "y": 64},
-	"lifeItem2": {"x": 960, "y": 96},
-	"lifeItem3": {"x": 2272, "y": 128}
+	"lifeItem1": {"x": 160, "y": 64, "message": "This book reminds me of something...\nI remember reading it, long ago."},
+	"lifeItem2": {"x": 960, "y": 96, "message": "This controller...\nI remember playing games...\nWho was I with? What did I play?"},
+	"lifeItem3": {"x": 2272, "y": 128, "message": "I think this belonged... to my father.\nI used it every day. I carried tea."}
 }
