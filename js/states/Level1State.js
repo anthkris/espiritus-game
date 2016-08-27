@@ -63,7 +63,7 @@ Espiritus.Game = {
         this.player.animations.add('walking', [63, 60, 61, 62], 6, true);
     	this.game.physics.arcade.enable(this.player);
     	
-        this.player.customParams = {keyNum: 0,};
+        this.player.customParams = {keyNum: 0};
         this.game.camera.follow(this.player);
     	this.player.checkWorldBounds = true;
     		//  This adjusts the collision body size to be a 20x23 box.
@@ -113,7 +113,7 @@ Espiritus.Game = {
     },
     render: function() {
         this.game.debug.body(this.player);
-     },
+    },
     showLifeItemDialog: function(message) {
     	this.dialog = new Espiritus.Dialog(this.game, message);
     },
