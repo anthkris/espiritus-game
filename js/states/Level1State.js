@@ -158,7 +158,10 @@ Espiritus.Game = {
     },
     hitDanger: function(player, tile) {
         // check if player is touching danger tiles; if so, kill it
-        if (tile.index === 208 || tile.index === 234) {
+        if (tile.index === 208) {
+            console.log("ouch");
+        }
+        if (tile.index === 234 && player.body.blocked.up) {
             console.log("ouch");
         }
         if ((tile.index === 233 && player.body.blocked.right) || (tile.index === 233 && player.body.blocked.up)) {

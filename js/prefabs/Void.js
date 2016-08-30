@@ -5,11 +5,11 @@ Espiritus.VoidDialog = function(game, message) {
     this.message = message;
     this.voidDialog = this.game.add.sprite(this.game.camera.width/6, 10, 'voidBG');
     this.voidDialog.alpha = 0.6;
-    console.log(this.voidDialog);
+    //console.log(this.voidDialog);
     this.voidDialog.scale.setTo(0.9);
     this.voidDialog.fixedToCamera = true;
     
-    this.textObject = this.game.add.bitmapText(this.game.camera.width/4 + 100, 20, 'nokia', this.message, 24);
+    this.textObject = this.game.add.bitmapText(this.game.camera.width/4 + 100, 20, 'stampingNicoWhite', this.message, 24);
     this.textObject.visible = false;
     this.textObject.fixedToCamera = true;
     
