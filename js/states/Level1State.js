@@ -147,6 +147,7 @@ Espiritus.Game = {
     	console.log("got a " + item.key);
     	if (item.key === "book") {
     		this.showLifeItemDialog(this.levelData.lifeItem1.message);
+    		this.voidMessages(item.key);
     	}
     	if (item.key === "controller") {
     		this.showLifeItemDialog(this.levelData.lifeItem2.message);
@@ -183,5 +184,14 @@ Espiritus.Game = {
     theVoid: function() {
         this.theVoidVoice = "You'll never escape.\nYou belong here.\nYou belong to me."
         this.voidMessage = new Espiritus.VoidDialog(this.game, this.theVoidVoice);
+    },
+    voidMessages: function(sprite) {
+        this.game.time.events.add(Phaser.Timer.SECOND * 9, function(){
+            this.voidItemVoice;
+            if (sprite === "book") {
+                this.voidItemVoice = "What do you need that for?\nRelease your old self.\nAccept your death.";
+            }
+            this.voidItemMessage = new Espiritus.VoidDialog(this.game, this.voidItemVoice);
+        }, this);
     }
 };
