@@ -1,20 +1,37 @@
 var Espiritus = Espiritus || {};
 
-Espiritus.Dialog = function(game, message) {
+Espiritus.Dialog = function(game, message, item, player) {
   Phaser.Sprite.call(this, game);
     this.message = message;
-    this.modalBG = this.game.add.sprite(this.game.camera.width/4, this.game.world.height - 122, 'modalBG');
-    this.modalBG.scale.setTo(0.7);
+    this.item = item;
+    this.player = player;
+
+    if (this.player.position.y < this.game.world.height / 2) {
+        this.modalBG = this.game.add.sprite(this.game.camera.width/4, this.game.world.height - 122, 'modalBG');
+        this.textObject = this.game.add.bitmapText(this.game.camera.width/4 + 50, this.game.world.height - 110, 'nokia', this.message, 20);
+    } else {
+        this.modalBG = this.game.add.sprite(this.game.camera.width/4, this.game.world.height - 50, 'modalBG');
+        this.textObject = this.game.add.bitmapText(this.game.camera.width/4 + 50, this.game.world.height - 70, 'nokia', this.message, 20);
+    }
+    
+    this.modalBG.scale.setTo(0.4);
     this.modalBG.fixedToCamera = true;
-    this.textObject = this.game.add.bitmapText(this.game.camera.width/4 + 100, this.game.world.height - 110, 'nokiaBlack', this.message, 20);
+    
     this.textObject.visible = false;
     this.textObject.fixedToCamera = true;
-    this.displayLetterByLetterText(this.textObject, this.message, function() {
+    this.displayLetterByLetterText(this.textObject, this.message, function(game) {
         // stuff you want to do at the end of the animation
         // eg. this.input.onDown.addOnce(this.start, this);
-        this.game.time.events.add(Phaser.Timer.SECOND * 4, function(){
+        this.game.time.events.add(1000 * 2, function(){
         	this.fadeOut(this.modalBG);
         	this.fadeOut(this.textObject);
+        	this.game.time.events.add(Phaser.Timer.SECOND * 2, function(){
+                this.voidItemVoice;
+                if (this.item === "book") {
+                    this.voidItemVoice = "What do you want with a book?\nRelease your old self.\nRemain at peace.";
+                }
+                this.voidItemMessage = new Espiritus.VoidDialog(this.game, this.voidItemVoice, this.player);
+            }, this);
         }, this);
         //console.log("text end");
     }, this);

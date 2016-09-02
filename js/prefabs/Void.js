@@ -1,15 +1,23 @@
 var Espiritus = Espiritus || {};
 
-Espiritus.VoidDialog = function(game, message) {
+Espiritus.VoidDialog = function(game, message, player) {
   Phaser.Sprite.call(this, game);
     this.message = message;
-    this.voidDialog = this.game.add.sprite(this.game.camera.width/6, 10, 'voidBG');
-    this.voidDialog.alpha = 0.6;
+    this.player = player;
+
+     if (this.player.position.y < this.game.world.height/2) {
+        this.voidDialog = this.game.add.sprite(this.game.camera.width/4, this.game.world.height - 142, 'voidBG');
+        this.textObject = this.game.add.bitmapText(this.game.camera.width/4 + 50, this.game.world.height - 110, 'nokia', this.message, 22);
+     } else {
+        this.voidDialog = this.game.add.sprite(this.game.camera.width/4, 20, 'voidBG');
+        this.textObject = this.game.add.bitmapText(this.game.camera.width/4 + 50, 60, 'nokia', this.message, 22);
+     }
+     
     //console.log(this.voidDialog);
-    this.voidDialog.scale.setTo(0.9);
+    this.voidDialog.scale.setTo(0.4);
     this.voidDialog.fixedToCamera = true;
     
-    this.textObject = this.game.add.bitmapText(this.game.camera.width/4 + 100, 20, 'stampingNicoWhite', this.message, 24);
+    
     this.textObject.visible = false;
     this.textObject.fixedToCamera = true;
     

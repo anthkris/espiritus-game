@@ -10,13 +10,14 @@ Espiritus.PreloadState = {
 		this.load.image('controller', 'assets/images/controller.png'); 
 		this.load.image('thermos', 'assets/images/thermos.png'); 
 		this.load.image('ticket', 'assets/images/ticket.png'); 
-		this.load.image('modalBG', 'assets/images/modalBG.png');
-		this.load.image('voidBG', 'assets/images/voidDialogBG.png');
+		this.load.image('modalBG', 'assets/images/dialog_BG.png');
+		this.load.image('voidBG', 'assets/images/void_BG.png');
 		this.load.image('worldBound', 'assets/images/worldBound.png'); 
 	
-    this.load.spritesheet('player', 'assets/images/tiny_people.png', 32, 32, 112, 1, 0);     
+        this.load.spritesheet('player', 'assets/images/tiny_people.png', 32, 32, 112, 1, 0);     
   
-    this.load.text('level', 'assets/data/level.json');
+        this.load.text('level', 'assets/data/level.json');
+        this.load.text('void', 'assets/data/voidMessage.json');
 		
 		this.game.load.tilemap('map', 'assets/data/level1.json', null, Phaser.Tilemap.TILED_JSON);
 		this.game.load.image('tiny_tileset', 'assets/tilemaps/tiny_tileset.png');

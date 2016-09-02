@@ -3,7 +3,6 @@ Espiritus.Game = {
   //executed after everything is loaded
     create: function() {
         this.cursors = game.input.keyboard.createCursorKeys();
-        
         this.hell = game.add.tileSprite(0, 0, 1274, 768, 'cave');
     	this.background = game.add.tileSprite(1220, 0, 1248, 768, 'background');
     	
@@ -15,6 +14,7 @@ Espiritus.Game = {
     
         //parse the file
         this.levelData = JSON.parse(this.game.cache.getText('level'));
+        this.voidData = JSON.parse(this.game.cache.getText('void'));
     		
     	this.map = game.add.tilemap('map');
         this.map.addTilesetImage('tiny_tileset');
@@ -60,7 +60,7 @@ Espiritus.Game = {
         //create player
         this.player = this.add.sprite(this.levelData.playerStart.x, this.levelData.playerStart.y, 'player', 62);
         this.player.anchor.setTo(0.5);
-        this.player.animations.add('walking', [63, 60, 61, 62], 6, true);
+        this.player.animations.add('walking', [63, 60, 61, 62], 10, true);
     	this.game.physics.arcade.enable(this.player);
     	
         this.player.customParams = {keyNum: 0};
@@ -69,6 +69,7 @@ Espiritus.Game = {
     		//  This adjusts the collision body size to be a 20x23 box.
         //  3, 6 is the X and Y offset of the newly sized box.
         this.player.body.setSize(20, 23, 5, 6);
+        this.voidMessages();
         
         // text dialogue setup
         //this.bookMessage = "This book reminds me of something... \nI remember reading it, long ago.";
@@ -114,8 +115,8 @@ Espiritus.Game = {
     render: function() {
         this.game.debug.body(this.player);
     },
-    showLifeItemDialog: function(message) {
-    	this.dialog = new Espiritus.Dialog(this.game, message);
+    showLifeItemDialog: function(message, item, player) {
+    	this.dialog = new Espiritus.Dialog(this.game, message, item, player, this);
     },
     killPlayer: function(player, fire) {
       	 if (player.x > this.game.world.width) {
@@ -146,8 +147,8 @@ Espiritus.Game = {
     collectLifeItem: function(player, item) {
     	console.log("got a " + item.key);
     	if (item.key === "book") {
-    		this.showLifeItemDialog(this.levelData.lifeItem1.message);
-    		this.voidMessages(item.key);
+    		this.showLifeItemDialog(this.levelData.lifeItem1.message, item.key, this.player);
+    		//this.voidMessages(item.key);
     	}
     	if (item.key === "controller") {
     		this.showLifeItemDialog(this.levelData.lifeItem2.message);
@@ -156,6 +157,8 @@ Espiritus.Game = {
     		this.showLifeItemDialog(this.levelData.lifeItem3.message);
     	}
     	item.destroy();
+    	this.levelData.pullSpeed -= 40;
+    	this.levelData.runningSpeed += 40;
     },
     hitDanger: function(player, tile) {
         // check if player is touching danger tiles; if so, kill it
@@ -185,13 +188,10 @@ Espiritus.Game = {
         this.theVoidVoice = "You'll never escape.\nYou belong here.\nYou belong to me."
         this.voidMessage = new Espiritus.VoidDialog(this.game, this.theVoidVoice);
     },
-    voidMessages: function(sprite) {
-        this.game.time.events.add(Phaser.Timer.SECOND * 9, function(){
-            this.voidItemVoice;
-            if (sprite === "book") {
-                this.voidItemVoice = "What do you need that for?\nRelease your old self.\nAccept your death.";
-            }
-            this.voidItemMessage = new Espiritus.VoidDialog(this.game, this.voidItemVoice);
+    voidMessages: function() {
+        this.game.time.events.add(Phaser.Timer.SECOND * 4, function(){
+            this.voidItemVoice = this.voidData.voidMessages[this.game.rnd.integerInRange(0, 3)];
+            this.voidItemMessage = new Espiritus.VoidDialog(this.game, this.voidItemVoice, this.player);
         }, this);
     }
 };
