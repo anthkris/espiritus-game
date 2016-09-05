@@ -1,8 +1,8 @@
 {
   "playerStart": {"x": 250, "y": 700},
-	"runningSpeed": 100,
+	"runningSpeed": 60,
 	"jumpingSpeed": 250,
-	"pullSpeed": 160,
+	"pullSpeed": 180,
   "keyData": [
     {"x": 448, "y": 256},
     {"x": 1504, "y": 64},
@@ -10,6 +10,6 @@
 	{"x": 2176, "y": 672}
   ],
 	"lifeItem1": {"x": 160, "y": 64, "message": "(A book. \"Orpheus and Eurydice.\"\nIt feels warm, alive. Your heart seems lighter.\nThe pull lessens.)"},
-	"lifeItem2": {"x": 960, "y": 96, "message": "This controller...\nI remember playing games...\nWho was I with? What did I play?"},
-	"lifeItem3": {"x": 2272, "y": 128, "message": "I think this belonged... to my father.\nI used it every day. I carried tea."}
+	"lifeItem2": {"x": 960, "y": 96, "message": "(A game controller...\nDid you play games? What did you play?\nIt feels snug in your hands.\nThe pull lessens.)"},
+	"lifeItem3": {"x": 2272, "y": 128, "message": "(A thermos...\nIt belonged to... your father.\nHe drank Earl Grey every morning.\nSo did you. The pull lessens.)"}
 }

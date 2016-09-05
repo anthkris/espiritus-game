@@ -1,7 +1,8 @@
 {
-  "voidMessages": ["*See how easy it can be?\n*Just let go.",
-  "*You strive and you struggle.\n And for what?",
-  "*There's nothing for you out there.\n*Stay with me.",
-  "*What are you fighting for?\n*A world of hunger and hate.\n*You're past all that now."
+  "voidMessages": [
+    "* See how easy it can be?\n* Just let go.",
+    "* You strive and you struggle.\n* And for what?",
+    "* There's nothing out there for you.\n* Stay in the soothing dark, with me.",
+    "* What are you fighting for?\n* A world of hunger and hate?\n* You're past all that now."
   ]
 }

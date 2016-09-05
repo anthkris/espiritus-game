@@ -5,6 +5,10 @@ Espiritus.Game = {
         this.cursors = game.input.keyboard.createCursorKeys();
         this.hell = game.add.tileSprite(0, 0, 1274, 768, 'cave');
     	this.background = game.add.tileSprite(1220, 0, 1248, 768, 'background');
+    	this.voidTimer = 0;
+    	this.ghostWhoosh = this.game.add.audio('ghostWhoosh');
+    	this.itemSparkle = this.game.add.audio('itemSparkle');
+    	this.splashSound = this.game.add.audio('splashSound');
     	
     	this.worldBound = game.add.sprite(2395, 256, 'worldBound');
     	this.game.physics.arcade.enable(this.worldBound);
@@ -16,7 +20,7 @@ Espiritus.Game = {
         this.levelData = JSON.parse(this.game.cache.getText('level'));
         this.voidData = JSON.parse(this.game.cache.getText('void'));
     		
-    	this.map = game.add.tilemap('map');
+    	this.map = this.game.add.tilemap('map');
         this.map.addTilesetImage('tiny_tileset');
     		
     	this.platformLayer = this.map.createLayer('platforms');
@@ -38,8 +42,10 @@ Espiritus.Game = {
     		key = this.keys.create(element.x, element.y, 'key');
     		key.scale.setTo(0.7);
     	}, this);
-    	
     	this.keys.setAll('body.allowGravity', false);
+    	
+    	this.hudKeys = this.add.group();
+    	
     	
     	// Life Items
     	this.book = this.add.sprite(this.levelData.lifeItem1.x, this.levelData.lifeItem1.y, 'book');
@@ -63,10 +69,10 @@ Espiritus.Game = {
         this.player.animations.add('walking', [63, 60, 61, 62], 10, true);
     	this.game.physics.arcade.enable(this.player);
     	
-        this.player.customParams = {keyNum: 0};
+        this.player.customParams = {keyNum: 0, lifeItemNum: 0};
         this.game.camera.follow(this.player);
     	this.player.checkWorldBounds = true;
-    		//  This adjusts the collision body size to be a 20x23 box.
+    	//  This adjusts the collision body size to be a 20x23 box.
         //  3, 6 is the X and Y offset of the newly sized box.
         this.player.body.setSize(20, 23, 5, 6);
         this.voidMessages();
@@ -84,9 +90,9 @@ Espiritus.Game = {
     	 this.game.physics.arcade.collide(this.player, this.controller, this.collectLifeItem, null, this);
     	 this.game.physics.arcade.collide(this.player, this.thermos, this.collectLifeItem, null, this);
     	 
-    	 if (this.player.body.onFloor()) {
-    	   this.player.customParams.mustJump = true;
-    	 }
+        if (this.player.body.onFloor()) {
+            this.player.customParams.mustJump = true;
+    	}
     
         if (this.cursors.left.isDown) {
           this.player.body.velocity.x = -this.levelData.runningSpeed;
@@ -108,53 +114,61 @@ Espiritus.Game = {
           this.player.body.velocity.y = -this.levelData.jumpingSpeed;
           this.player.customParams.mustJump = false;
         }
-    		
     	// check if player is out of bounds; if so, kill it
     	this.player.events.onOutOfBounds.add(this.killPlayer, this);
     },
     render: function() {
-        this.game.debug.body(this.player);
+        //this.game.debug.body(this.player);
     },
     showLifeItemDialog: function(message, item, player) {
     	this.dialog = new Espiritus.Dialog(this.game, message, item, player, this);
     },
-    killPlayer: function(player, fire) {
+    killPlayer: function(player, death) {
       	 if (player.x > this.game.world.width) {
       	 	this.win(player);
       	 } else {
-      	 	console.log('auch!');
-        	this.game.state.start('GameState');
+      	 	//console.log('auch!');
+        	this.game.state.start('GameOverState', true, false, death, player.customParams.lifeItemNum);
       	 }
     },
     win: function(player) {
-        console.log(player);
         if (player.customParams.keyNum === 4) {
-            //this.worldBound.destroy();
-            alert('you win!');
-            this.game.state.start('GameState'); 
+            //alert('you win!');
+            this.game.state.start('GameOverState', true, false, "win", player.customParams.lifeItemNum); 
         } else {
             player.body.x = this.game.width - player.body.width;
         }
-     },
+    },
     collectKeys: function(player, key) {
         player.customParams.keyNum++;
-    	console.log("got " + player.customParams.keyNum + " key(s)");
+    	//console.log("got " + player.customParams.keyNum + " key(s)");
     	key.destroy();
+    	this.itemSparkle.play();
+    	this.createHudKey(player);
+    	var message;
+    	
+    	if(player.customParams.keyNum === 1) {
+    	    message = "(A key.\nThere must a door somewhere.\nA way out.)";
+    	    this.dialog = new Espiritus.Dialog(this.game, message, "key", player, this);
+    	}
     	if (player.customParams.keyNum === 4) {
             this.worldBound.destroy();
+            message = "(Somehwere, a door unlocked.)";
+    	    this.dialog = new Espiritus.Dialog(this.game, message, "key", player, this);
     	}
     },
     collectLifeItem: function(player, item) {
-    	console.log("got a " + item.key);
+    	//console.log("got a " + item.key);
+    	player.customParams.lifeItemNum++;
+    	this.itemSparkle.play();
     	if (item.key === "book") {
     		this.showLifeItemDialog(this.levelData.lifeItem1.message, item.key, this.player);
-    		//this.voidMessages(item.key);
     	}
     	if (item.key === "controller") {
-    		this.showLifeItemDialog(this.levelData.lifeItem2.message);
+    		this.showLifeItemDialog(this.levelData.lifeItem2.message, item.key, this.player);
     	}
     	if (item.key === "thermos") {
-    		this.showLifeItemDialog(this.levelData.lifeItem3.message);
+    		this.showLifeItemDialog(this.levelData.lifeItem3.message, item.key, this.player);
     	}
     	item.destroy();
     	this.levelData.pullSpeed -= 40;
@@ -163,35 +177,51 @@ Espiritus.Game = {
     hitDanger: function(player, tile) {
         // check if player is touching danger tiles; if so, kill it
         if (tile.index === 208) {
-            console.log("ouch");
+            this.killPlayer(player, "spike");
         }
         if (tile.index === 234 && player.body.blocked.up) {
-            console.log("ouch");
+            this.killPlayer(player, "spike");
         }
         if ((tile.index === 233 && player.body.blocked.right) || (tile.index === 233 && player.body.blocked.up)) {
-            console.log("ouch");
+            this.killPlayer(player, "spike");
         }
         if ((tile.index === 235 && player.body.blocked.left) || (tile.index === 235 && player.body.blocked.up)) {
-            console.log("ouch");
+            this.killPlayer(player, "spike");
         }
         if (tile.index === 243 && player.body.blocked.left) {
-            console.log("ouch");
+            this.killPlayer(player, "spike");
         }
         if (tile.index === 245 && player.body.blocked.right) {
-            console.log("ouch");
+            this.killPlayer(player, "spike");
         }
     },
     drownInWater: function(player, tile) {
-        console.log("drowning...");
+        //console.log("drowning...");
+        this.splashSound.play();
+        this.game.state.start('GameOverState', true, false, 'water', player.customParams.lifeItemNum);
     },
     theVoid: function() {
-        this.theVoidVoice = "You'll never escape.\nYou belong here.\nYou belong to me."
-        this.voidMessage = new Espiritus.VoidDialog(this.game, this.theVoidVoice);
+        this.theVoidVoice = "* You'll never escape.\n* You belong here.\n* You belong to me.";
+        if (this.game.time.now > this.voidTimer) {
+            this.voidMessage = new Espiritus.VoidDialog(this.game, this.theVoidVoice, this.player);
+            this.ghostWhoosh.play();
+            this.voidTimer = this.game.time.now + 12000;
+        }
     },
     voidMessages: function() {
         this.game.time.events.add(Phaser.Timer.SECOND * 4, function(){
             this.voidItemVoice = this.voidData.voidMessages[this.game.rnd.integerInRange(0, 3)];
             this.voidItemMessage = new Espiritus.VoidDialog(this.game, this.voidItemVoice, this.player);
+            this.ghostWhoosh.play();
         }, this);
+    },
+    createHudKey: function(player) {
+        for (var i = 1; i <= player.customParams.keyNum; i++) {
+            var hudKeyX = 30 * i;
+            var hudKeyY = 30;
+            this.hudKey = this.hudKeys.create(hudKeyX, hudKeyY, 'key');
+            this.hudKey.anchor.setTo(0.5);
+            this.hudKey.fixedToCamera = true;
+        }
     }
 };

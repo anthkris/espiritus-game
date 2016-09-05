@@ -4,7 +4,7 @@ Espiritus.BootState = {
     //initiate some game-level settings
   init: function() {
     //adapt to screen size, fit all the game
-    //this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     this.scale.pageAlignHorizontally = true;
     this.scale.pageAlignVertically = true;
 

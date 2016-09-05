@@ -24,7 +24,7 @@ Espiritus.VoidDialog = function(game, message, player) {
     this.displayLetterByLetterText(this.textObject, this.message, function() {
         // stuff you want to do at the end of the animation
         // eg. this.input.onDown.addOnce(this.start, this);
-        this.game.time.events.add(Phaser.Timer.SECOND * 4, function(){
+        this.game.time.events.add(Phaser.Timer.SECOND * 2, function(){
         	this.fadeOut(this.voidDialog);
         	this.fadeOut(this.textObject);
         }, this);
@@ -40,7 +40,7 @@ Espiritus.VoidDialog.prototype.displayNextLetter = function() {
         this.counter += 1;
 };
 Espiritus.VoidDialog.prototype.displayLetterByLetterText = function (textObject, message, onCompleteCallback) {
-    var timerEvent = this.game.time.events.repeat(80, message.length, this.displayNextLetter, 
+    var timerEvent = this.game.time.events.repeat(100, message.length, this.displayNextLetter, 
                                 { textObject: textObject, message: message, counter: 1 });
     timerEvent.timer.onComplete.addOnce(onCompleteCallback, this);
 };
