@@ -10,12 +10,9 @@ Espiritus.BootState = {
 
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 	  this.game.physics.arcade.setBoundsToWorld(false, true, true, true); //leftbound, rightbound, upperbound, lowerbound
-		
-    //this.cursors = this.game.input.keyboard.createCursorKeys();
   },
   preload: function() {
-  	this.load.image('preloadBar', 'assets/images/bar.png');
-  	this.load.image('logo', 'assets/images/logo.png');
+  	this.load.image('preloadBar', 'assets/images/loadingBar.png');
   },
   create: function() {
   	this.state.start('PreloadState');

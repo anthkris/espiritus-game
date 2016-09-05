@@ -28,8 +28,10 @@ Espiritus.PreloadState = {
 	
     this.game.load.bitmapFont('nokiaBlack', 'assets/fonts/nokia16black.png', 'assets/fonts/nokia16black.xml');
     this.game.load.bitmapFont('nokia', 'assets/fonts/nokia.png', 'assets/fonts/nokia.xml');
-    this.game.load.bitmapFont('stampingNico', 'assets/fonts/stampingNicoBlack.png', 'assets/fonts/stampingNicoBlack.xml');
-    this.game.load.bitmapFont('stampingNicoWhite', 'assets/fonts/stampingNicoWhite.png', 'assets/fonts/stampingNicoWhite.xml');
+    
+    this.preloadBar = this.add.sprite(this.game.world.centerX, this.game.world.centerY, 'preloadBar');
+    this.preloadBar.anchor.setTo(0.5);
+    this.load.setPreloadSprite(this.preloadBar);
   },
   create: function() {
     this.state.start('HomeState');
